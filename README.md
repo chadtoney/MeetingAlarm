@@ -8,6 +8,11 @@ Available under the [MIT license](LICENSE). This is a prototype, not an official
 Microsoft product or PowerToy. It does not guarantee that you will notice every
 meeting.
 
+**[Download the Windows installer](https://github.com/chadtoney/MeetingAlarm/releases/download/v1.0.0-preview.1/MeetingAlarm-1.0.0.0-win-x64-Setup.exe)**
+
+No GitHub account or sign-in is required. Download the setup file, run it, and
+follow the wizard. This is an unsigned preview; see the installation notes below.
+
 ## Quick start
 
 Requires Windows 10 version 2004 or later, or Windows 11. The app is built for
@@ -15,8 +20,8 @@ x64; Windows 11 on Arm64 can run it using Windows' x64 emulation.
 
 ### Install (recommended; no developer tools needed)
 
-1. Open the [Releases page](https://github.com/chadtoney/MeetingAlarm/releases)
-   and download `MeetingAlarm-<version>-win-x64-Setup.exe` from **Assets**.
+1. [Download the Windows installer](https://github.com/chadtoney/MeetingAlarm/releases/download/v1.0.0-preview.1/MeetingAlarm-1.0.0.0-win-x64-Setup.exe).
+   You do not need to create a GitHub account or find files on the repository page.
 2. Double-click the downloaded file and follow the setup wizard. You can keep the
    default installation folder and optionally create a desktop shortcut.
 3. Open **Meeting Alarm** from the Windows Start menu, then click **Test in 10
@@ -31,9 +36,9 @@ an uninstaller in Windows Settings. You do not need Git, Visual Studio, or the
 read your mailbox.
 
 Builds are unsigned. If Windows or organizational policy blocks execution, follow
-the applicable approval process rather than disabling protections. If an installer
-has not been published yet, a maintainer must build and upload one using the
-instructions below.
+the applicable approval process rather than disabling protections. Release notes
+and other versions are on the
+[Releases page](https://github.com/chadtoney/MeetingAlarm/releases).
 
 ### Portable ZIP (alternative)
 
@@ -176,11 +181,12 @@ This temporarily installs the app and creates test shortcuts/startup entries,
 then uninstalls and removes those entries. It does not launch the app or connect
 to a calendar. Diagnostic logs are kept in the temporary folder printed by the test.
 
-Attach the setup executable to a GitHub release so users can install without
-building. A private repository still requires GitHub access to download releases;
-MIT licensing does not change repository visibility. The build does not code-sign
-the application or installer; follow applicable signing and software-distribution
-policy before distributing.
+Attach the setup executable to a published GitHub release and update the direct
+installer links in this README for each new version. This public repository's
+published releases can be downloaded without a GitHub account; draft releases
+cannot. Share the direct installer link with users who only want to install.
+The build does not code-sign the application or installer; follow applicable
+signing and software-distribution policy before distributing.
 
 For an optional portable archive after building (use a new archive name if the
 destination already exists):

@@ -1,11 +1,33 @@
 MEETING ALARM - standalone Windows prototype
 
+Licensed under MIT; see LICENSE. Bundled dependencies retain their own terms;
+see THIRD-PARTY-NOTICES.txt in the application folder.
+
+INSTALL (NO DEVELOPER TOOLS REQUIRED)
+Download MeetingAlarm-<version>-win-x64-Setup.exe from:
+  https://github.com/chadtoney/MeetingAlarm/releases
+If no installer has been published yet, use the source build below.
+Run setup, follow the wizard, then open Meeting Alarm from the Start menu.
+Setup installs for the current Windows user, without requesting administrator
+rights. An optional desktop shortcut is available during setup.
+The installer includes .NET and Windows App SDK. No separate runtime is needed.
+If Windows or your organization blocks the unsigned installer, use the
+applicable approval process; do not disable security protections.
+To update, quit Meeting Alarm from the tray and run the newer installer.
+Saved calendar settings remain in place. When switching from a portable copy,
+disable Start at Windows sign-in in that copy before quitting and installing.
+Re-enable it in the installed app if desired.
+
 Build:
   .\build.ps1
+Build a setup wizard (requires Inno Setup 6.3 or later):
+  .\build.ps1 -Installer
+  Output: artifacts\installer\MeetingAlarm-<version>-win-x64-Setup.exe
 Run:
   .\artifacts\app\MeetingAlarm.App.exe
 
-Requires Windows 10 2004+ or Windows 11 x64. Build with .NET 10 SDK.
+Requires Windows 10 2004+ or Windows 11. The x64 build also runs on Windows 11
+Arm64 using x64 emulation. Build with .NET 10 SDK.
 The output includes .NET and Windows App SDK; keep the entire app folder,
 not just the executable. Restore downloads pinned public NuGet dependencies.
 
@@ -123,7 +145,10 @@ classic Outlook. Graph app/client settings are retained for reconnection.
 Switching away from Graph retains its protected token cache until you
 disconnect; the inactive source does not poll.
 Unchecking Windows startup removes this app's HKCU Run entry.
-To uninstall: disable startup, quit, and remove the application folder.
+To uninstall a setup-installed copy: quit from the tray, then use Windows
+Settings > Apps to find Meeting Alarm and choose Uninstall. Its startup entry
+is removed if it still points to this installation.
+For a portable copy: disable startup, quit, and remove the application folder.
 Optionally remove %LOCALAPPDATA%\MeetingAlarm to delete local state.
 
 ARCHITECTURE / POSSIBLE POWERTOYS CONTRIBUTION

@@ -4,17 +4,57 @@ A standalone Windows meeting-reminder prototype with always-on-top alarms,
 a repeating chime, snooze, and meeting join links. It reads your default calendar
 from classic Outlook or Microsoft Graph; local alarms work without either.
 
-**Intended for sharing with Microsoft employees in an access-restricted GitHub
-repository.** This is a prototype, not an official Microsoft product or PowerToy.
-It does not guarantee that you will notice every meeting.
+Available under the [MIT license](LICENSE). This is a prototype, not an official
+Microsoft product or PowerToy. It does not guarantee that you will notice every
+meeting.
 
 ## Quick start
 
-Requires Windows 10 version 2004 or later, or Windows 11, on x64.
+Requires Windows 10 version 2004 or later, or Windows 11. The app is built for
+x64; Windows 11 on Arm64 can run it using Windows' x64 emulation.
 
-### Build from source
+### Install (recommended; no developer tools needed)
 
-Install the .NET 10 SDK for Windows x64, then open PowerShell in this folder:
+1. Open the [Releases page](https://github.com/chadtoney/MeetingAlarm/releases)
+   and download `MeetingAlarm-<version>-win-x64-Setup.exe` from **Assets**.
+2. Double-click the downloaded file and follow the setup wizard. You can keep the
+   default installation folder and optionally create a desktop shortcut.
+3. Open **Meeting Alarm** from the Windows Start menu, then click **Test in 10
+   seconds** to check the popup and sound.
+4. Connect your calendar using the steps below. Optionally enable **Start at
+   Windows sign-in** in the app.
+
+Setup installs for your Windows user without requesting administrator rights.
+It includes .NET and the Windows App SDK, adds a Start menu shortcut, and registers
+an uninstaller in Windows Settings. You do not need Git, Visual Studio, or the
+.NET SDK. Calendar connection is still a separate step; setup does not sign in or
+read your mailbox.
+
+Builds are unsigned. If Windows or organizational policy blocks execution, follow
+the applicable approval process rather than disabling protections. If an installer
+has not been published yet, a maintainer must build and upload one using the
+instructions below.
+
+### Portable ZIP (alternative)
+
+If a release includes `MeetingAlarm-win-x64.zip`, use File Explorer's **Extract
+All** to unpack it to a permanent folder. Open that folder and run
+`MeetingAlarm.App.exe`. Do not run inside the ZIP or move just the executable:
+keep all extracted files together. Portable copies do not add Start menu shortcuts
+or a Windows uninstall entry.
+
+### Build and install from source
+
+Install [Git](https://git-scm.com/downloads/win) and the
+[.NET 10 SDK for Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
+Clone the repository and open its folder in PowerShell:
+
+```powershell
+git clone https://github.com/chadtoney/MeetingAlarm.git
+Set-Location MeetingAlarm
+```
+
+If you already have the source folder, skip cloning. Build and run:
 
 ```powershell
 .\build.ps1
@@ -24,16 +64,28 @@ Install the .NET 10 SDK for Windows x64, then open PowerShell in this folder:
 The build restores pinned public NuGet dependencies and publishes a self-contained
 app, including .NET and the Windows App SDK. Internet access is required for the
 initial restore. Keep the **entire** `artifacts\app` folder, not just the executable.
+You can copy that folder's contents to a permanent location such as
+`%LOCALAPPDATA%\Programs\MeetingAlarm`, then run `MeetingAlarm.App.exe` there.
 Before rebuilding, quit any copy running from that folder using the tray icon's
 **Quit** command; closing its window only hides it and leaves build files locked.
 
-### Run a shared build
+### Update or uninstall
 
-If a maintainer provides a build in the employee-only repository, extract the
-entire archive to a local folder and run `MeetingAlarm.App.exe`. The .NET SDK is
-not required to run the published app. Use only an approved distribution source;
-if Windows or organizational policy blocks execution, follow your organization's
-approval process rather than disabling protections.
+**Installed with setup:** Right-click the tray icon and choose **Quit**, then run
+the newer installer. Keep the same installation folder to preserve the startup
+path. To uninstall, quit from the tray, open **Windows Settings > Apps**, find
+**Meeting Alarm**, and choose **Uninstall**. The uninstaller removes the startup
+entry if it still points to that installation.
+
+**Portable copy:** Quit from the tray before replacing application files with a
+fresh extraction. To uninstall, disable **Start at Windows sign-in**, quit, and
+delete the application folder. Disable startup before moving the app or switching
+to the setup-installed version; re-enable it in the new copy if desired.
+
+Both methods retain settings and calendar state in `%LOCALAPPDATA%\MeetingAlarm`.
+Optionally delete that folder to remove saved settings, calendar data, and the
+local token cache. Deleting the local cache does not revoke previously issued
+tokens or sign you out of Outlook or your browser.
 
 ### Connect your calendar
 
@@ -70,7 +122,7 @@ Alarm titles are hidden by default, but titles remain visible in the main window
 
 Do not attach real meeting subjects, attendee details, join URLs, tokens, or local
 state files to issues or pull requests. Use synthetic examples and redact
-screenshots and diagnostics before sharing, even in an employee-only repository.
+screenshots and diagnostics before sharing.
 
 ## Development
 
@@ -87,27 +139,64 @@ manual check. Run `.\build.ps1` after app changes to verify the published resour
 The solution separates the scheduling engine (`MeetingAlarm.Core`), calendar
 connectors (`MeetingAlarm.ClassicOutlook` and `MeetingAlarm.Outlook`), and WinUI 3
 desktop host (`MeetingAlarm.App`). Keep changes focused and add tests for behavior
-changes. Report reproducible issues in the access-restricted repository.
+changes. Report reproducible issues in this repository without including private
+calendar data.
 
 ## Publishing and sharing (maintainers)
 
-Before the first push, create an organization-approved repository whose effective
-access is limited to the intended Microsoft employees. A repository visibility
-label alone does not establish employee-only access; check organization membership,
-outside collaborators, and enterprise access policies.
-
-Review the files staged for the initial commit. `.gitignore` excludes build output
+Review the files staged for each commit. `.gitignore` excludes build output
 and common local state/credential files, but is not a substitute for reviewing
 content. Do not include `%LOCALAPPDATA%\MeetingAlarm` or another user's cache.
-No open-source license or public redistribution permission is established here;
-obtain the appropriate ownership and release approvals before any public release.
+Contributors must have permission to share and license their contributions.
 
-To prepare a runnable archive after a successful build:
+Install [Inno Setup 6.3 or later](https://jrsoftware.org/isdl.php) on the build
+machine (not on users' computers), then run:
+
+```powershell
+.\build.ps1 -Installer
+```
+
+The installer is written to
+`artifacts\installer\MeetingAlarm-<version>-win-x64-Setup.exe`. Its version comes
+from the published application's file version; increment the application version
+before publishing a new release. The compiler is discovered on PATH or in the
+standard per-user and Program Files locations. The build includes the MIT license,
+user guide, and third-party notices collected from restored packages. App settings
+and token caches are not part of the installer.
+
+On a clean Windows test account with no installed Meeting Alarm, shortcuts, or
+startup entry, exercise installation, update, shortcuts, running-app guards, and
+uninstallation with:
+
+```powershell
+.\tools\Test-Installer.ps1 -InstallerPath .\artifacts\installer\MeetingAlarm-<version>-win-x64-Setup.exe
+```
+
+This temporarily installs the app and creates test shortcuts/startup entries,
+then uninstalls and removes those entries. It does not launch the app or connect
+to a calendar. Diagnostic logs are kept in the temporary folder printed by the test.
+
+Attach the setup executable to a GitHub release so users can install without
+building. A private repository still requires GitHub access to download releases;
+MIT licensing does not change repository visibility. The build does not code-sign
+the application or installer; follow applicable signing and software-distribution
+policy before distributing.
+
+For an optional portable archive after building (use a new archive name if the
+destination already exists):
 
 ```powershell
 Compress-Archive -Path .\artifacts\app\* -DestinationPath .\artifacts\MeetingAlarm-win-x64.zip
 ```
 
-Share the archive only through the approved employee-only repository or another
-approved internal channel. This build script does not sign the executable or
-produce an installer; follow applicable signing and software-distribution policy.
+## License
+
+Meeting Alarm is licensed under the [MIT license](LICENSE), which permits use,
+modification, and redistribution, including commercial use, subject to its terms.
+Include the copyright and permission notice when redistributing the software.
+The software is provided without warranty.
+
+Third-party dependencies remain subject to their respective licenses; the
+Meeting Alarm license does not replace those terms. Published builds include
+`THIRD-PARTY-NOTICES.txt` with package attribution, supplied license/notice text,
+and license references.

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>MeetingAlarm.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\MeetingAlarm.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+    <AppxPackage>false</AppxPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260804001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.9169" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
+    <ProjectReference Include="..\MeetingAlarm.Core\MeetingAlarm.Core.csproj" />
+    <ProjectReference Include="..\MeetingAlarm.Outlook\MeetingAlarm.Outlook.csproj" />
+    <ProjectReference Include="..\MeetingAlarm.ClassicOutlook\MeetingAlarm.ClassicOutlook.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\MeetingAlarm.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\MeetingAlarm.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- Unpackaged dotnet publish omits generated XAML/PRI resources by default. -->
+  <Target Name="PublishWinUIResources" AfterTargets="ComputeFilesToPublish">
+    <Error Condition="!Exists('$(ProjectPriFullPath)')" Text="Compiled WinUI resources are missing. Build before publishing." />
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)">
+        <RelativePath>$(ProjectPriFileName)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <_WinUICompiledXaml Include="$(TargetDir)**\*.xbf" />
+    </ItemGroup>
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_WinUICompiledXaml)">
+        <RelativePath>%(_WinUICompiledXaml.RecursiveDir)%(_WinUICompiledXaml.Filename)%(_WinUICompiledXaml.Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

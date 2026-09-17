@@ -1,0 +1,72 @@
+Optional Outlook calendar connector
+
+No registration, sign-in, or calendar access is performed by building or testing.
+The host app must supply its own approved Microsoft Entra public-client application
+UUID and tenant UUID, organizations, common, or consumers. No client secret is used.
+Only public-cloud Microsoft Graph is supported.
+
+The approved registration must support mobile/desktop public-client interactive
+authorization using the system browser and the http://localhost redirect URI.
+Its supported account audience must match the tenant supplied by the host.
+Request delegated Microsoft Graph Calendars.Read. MSAL adds standard OpenID
+Connect scopes for authentication/token renewal. Tenant consent policy may require
+administrator approval. This library neither registers applications nor bypasses
+consent. The UI must explain browser sign-in before calling SignInAsync.
+
+API:
+Task<OutlookCalendarProvider> CreateAsync(string clientId, string tenantId,
+    string cacheDirectory, CancellationToken cancellationToken)
+Task<string> SignInAsync(CancellationToken cancellationToken)
+Task SignOutAsync(CancellationToken cancellationToken)
+Task<IReadOnlyList<Meeting>> GetMeetingsAsync(DateTimeOffset from,
+    DateTimeOffset to, CancellationToken cancellationToken)
+ValueTask DisposeAsync()
+void Dispose()
+
+CreateAsync verifies Windows DPAPI-backed MSAL cache persistence. Use an
+app-specific folder under the current user's LocalApplicationData, not OneDrive.
+There is no unencrypted or memory-only fallback. All instances sharing a cache
+must represent the same app/tenant. SignInAsync returns the account username (or
+"Outlook account") for display, never a token. Successful sign-in retains one
+account. Ambiguous/missing accounts require explicit sign-in.
+
+GetMeetingsAsync performs silent token acquisition only. It never opens a browser.
+OutlookSignInRequiredException derives from MsalUiRequiredException and asks the
+host to offer explicit reconnection. Other authentication errors are sanitized
+MsalClientException instances. OutlookCalendarException derives from
+HttpRequestException; its messages are sanitized and HTTP status, when present,
+is available through StatusCode. Cancellation remains OperationCanceledException.
+SignOutAsync removes locally cached MSAL accounts; it does not revoke tokens
+already issued by Microsoft or sign out of the system browser.
+Both IDisposable and IAsyncDisposable release HttpClient and cache hooks.
+Disposal waits for in-flight operations; cancel host operation tokens before
+disposing. Prefer DisposeAsync on UI threads when operations may still be running.
+Initialization failures/cancellation release resources that were not handed to
+the provider. Cleanup always attempts cache detachment, HttpClient disposal, and
+trace closure even if an earlier cleanup step fails. Expected MSAL, IO, access,
+security, crypto, and malformed cache data errors are sanitized; programming
+errors are not converted into recoverable connector errors.
+
+Calendar reads target only the signed-in user's default calendarView. Query windows
+must be positive and no longer than 31 days; the host should use a narrow rolling
+window. Up to 100 pages of 100 events, each capped at 8 MiB, are allowed. The
+entire call fails if any page fails or required data is missing/malformed.
+HTTP redirects are disabled. Continuations must be HTTPS on graph.microsoft.com,
+port 443, with the exact /v1.0/me/calendarView path and no user info or fragment.
+429/503 with Retry-After of 0-30 seconds are retried at most twice per page.
+
+UTC times and immutable event IDs are requested. The Core occurrence key combines
+event ID and UTC start, preserving separate recurring occurrences. Cancelled and
+all-day events are returned as flagged data for Core policy. Organizer status
+overrides responseStatus. Invitees have an "other attendee" (the organizer); for
+organizers, at least one attendee is required. Blank/null subject becomes
+"Untitled meeting". Unknown response values and non-UTC/invalid times fail.
+Join URLs are accepted only as absolute HTTPS URLs; the host decides when to open
+them. Nothing is automatically launched or downloaded.
+
+Tests use synthetic JSON, injected HttpMessageHandler, and disposable empty/corrupt
+DPAPI caches under the test project's output folder: no live sign-in, token reuse,
+or private calendar download. Cache-monitor tests verify that persistence failures
+swallowed by MSAL helpers become explicit errors without logging sensitive text.
+Live tenant consent, browser behavior, and cross-process encrypted token reuse
+require a separately authorized manual integration test on Windows.

@@ -1,0 +1,22 @@
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+TestResults/
+
+# Local IDE state and diagnostics
+*.suo
+*.log
+*.dmp
+
+# Local configuration, credentials, and calendar/token caches
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+state.bin
+state.bin.*
+*.msalcache*

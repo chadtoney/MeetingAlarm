@@ -1,0 +1,38 @@
+Classic Outlook local calendar source
+
+Requires Windows, a registered classic Outlook.Application COM server and a usable
+default MAPI profile. New Outlook does not implement this COM API. No Office PIA
+or additional interop installation is required. IsInstalled checks registration
+only; it does not prove a profile or calendar is accessible.
+
+Construction starts one background STA, without activating Outlook. The first
+GetMeetingsAsync call activates or attaches to classic Outlook and reads its
+default calendar. Only call it after the user explicitly chooses to connect.
+Outlook may open and show profile/sign-in/programmatic-access prompts. This
+connector neither suppresses those prompts nor changes security policy.
+
+All access is read-only: no saves, responses, sends, credential handling, profile
+changes, Quit calls or process termination. Recipient type is read to distinguish
+the organizer from required/optional/resource attendees. Teams URL extraction
+reads the named SkypeTeamsMeetingUrl property, then Location and Body if needed.
+A policy denial fails the entire snapshot rather than hiding the error.
+
+Calls have a 45-second timeout and a 366-day window / 10,000-item maximum.
+There is one work slot and no backlog. Concurrent calls are rejected. Cancellation
+or timeout completes the caller task, but native Outlook COM cannot be interrupted:
+the slot remains occupied until COM returns. Resolve Outlook prompts and retry.
+Dispose is non-blocking and leaves Outlook running. After in-flight COM returns,
+owned objects are released on their STA. A permanently hung native call necessarily
+retains that one background thread until this application exits.
+
+Recurring items are sorted by Start, expanded, then restricted by local Jet
+date strings formatted using the Windows current culture without seconds.
+Ambiguous DST boundaries are widened, and exact UTC overlap is checked afterward.
+Occurrence StartUTC/EndUTC and EntryID+start distinguish exceptions/occurrences.
+Changing/moving an Outlook item may change its identity.
+Calendar meetings retain normal response/attendee alarm eligibility; they are not
+classified as manually scheduled local alarms.
+
+Tests use fake snapshot readers on the real dedicated STA; they never activate
+Outlook or inspect a mailbox. Live profile/recurrence/security-prompt verification
+must be performed separately by the user on an explicitly connected profile.

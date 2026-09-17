@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MeetingAlarm.App/MeetingAlarm.App.csproj" />
+    <Project Path="src/MeetingAlarm.ClassicOutlook/MeetingAlarm.ClassicOutlook.csproj" />
+    <Project Path="src/MeetingAlarm.Core/MeetingAlarm.Core.csproj" />
+    <Project Path="src/MeetingAlarm.Outlook/MeetingAlarm.Outlook.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MeetingAlarm.App.Tests/MeetingAlarm.App.Tests.csproj" />
+    <Project Path="tests/MeetingAlarm.ClassicOutlook.Tests/MeetingAlarm.ClassicOutlook.Tests.csproj" />
+    <Project Path="tests/MeetingAlarm.Core.Tests/MeetingAlarm.Core.Tests.csproj" />
+    <Project Path="tests/MeetingAlarm.Outlook.Tests/MeetingAlarm.Outlook.Tests.csproj" />
+  </Folder>
+</Solution>

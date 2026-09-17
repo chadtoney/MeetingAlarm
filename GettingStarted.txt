@@ -1,0 +1,154 @@
+MEETING ALARM - standalone Windows prototype
+
+Build:
+  .\build.ps1
+Run:
+  .\artifacts\app\MeetingAlarm.App.exe
+
+Requires Windows 10 2004+ or Windows 11 x64. Build with .NET 10 SDK.
+The output includes .NET and Windows App SDK; keep the entire app folder,
+not just the executable. Restore downloads pinned public NuGet dependencies.
+
+QUICK START
+1. Open the app and click Test in 10 seconds.
+2. An always-on-top reminder opens at the scheduled time. A generated,
+   repeating two-note chime plays at normal system volume.
+3. Dismiss or snooze for one minute. Join Teams meeting (or Join meeting)
+   opens the event's HTTPS link in your default browser and acknowledges
+   the reminder. The alarm also includes a clickable meeting link and
+   Copy link. Copying leaves the alarm active and disables clipboard
+   history/roaming for that copy. Events without a link explicitly say so.
+4. Schedule local alarm creates a reminder only on this computer.
+5. Closing the main window hides it to the tray. Click the tray icon to
+   reopen; right-click for Open, Quiet/Resume, or Quit.
+6. Start at Windows sign-in is optional and initially disabled.
+
+CALENDAR SOURCES
+Expand Calendar connection and choose Classic Outlook (on this PC) or
+Microsoft Graph (cloud). Both are built in and operate without Scout.
+Only one source is active at a time; local alarms remain available with
+either source. Selecting a different dropdown option does not switch
+the active source until Connect succeeds. A failed connection preserves
+the previous source and cache. Refresh always refreshes the active source.
+Source choice and its calendar snapshot survive application restarts.
+The old Graph-only settings format is supported without reconfiguration.
+
+Sources may use different event identifiers. Dismissals, snoozes, and
+per-occurrence overrides are source-specific. Switching sources while a
+meeting is starting can produce a fresh reminder for that meeting.
+
+CLASSIC OUTLOOK SETUP (NO SEPARATE ENTRA APP REGISTRATION)
+1. Install and open classic Outlook and configure its default mail profile.
+   New Outlook alone does not expose the required local COM interface.
+2. Confirm the default calendar in classic Outlook is the intended one.
+3. In Meeting Alarm, select Classic Outlook (on this PC), then Connect.
+4. Complete any Outlook profile/setup/security prompts yourself. The app
+   never changes programmatic-access policy or bypasses a denied request.
+
+This connector reads classic Outlook's default calendar via its local
+COM interface. Classic Outlook may open or run in the background; you
+can continue using new Outlook as your everyday UI. The connector never
+quits Outlook, sends messages, edits events, or changes a response.
+It expands recurring occurrences and uses UTC occurrence times. Supported
+Teams join links are extracted locally; meetings without a recognized
+link still receive an alarm with Snooze and Dismiss.
+The COM work runs on a separate STA worker so Outlook does not freeze the
+alarm UI. A blocked Outlook request times out visibly, but a native COM
+call cannot be forcibly canceled. Resolve Outlook's pending dialogs before
+retrying. The same worker is reused to prevent accumulating blocked calls.
+Local cache reads do not prove that Outlook itself has synchronized with
+Exchange. Check classic Outlook's connection/sync status when offline.
+The app's last-sync time indicates its last successful read of Outlook.
+
+MICROSOFT GRAPH SETUP
+This connector has no shared application/client ID and does not borrow
+Scout, Outlook, Azure CLI, or another application's tokens.
+Use an approved Microsoft Entra application registration:
+  - Supported account type appropriate for your tenant.
+  - Authentication > Add a platform > Mobile and desktop applications.
+  - Redirect URI: http://localhost (system browser, public client + PKCE).
+  - Microsoft Graph delegated permission: Calendars.Read.
+  - No client secret. No application permissions or daemon access.
+Enter its application/client GUID and directory/tenant GUID in the app.
+Select Microsoft Graph and click Connect Microsoft Graph, then complete
+the browser sign-in. Administrator
+consent may be required by your organization. No tenant resources are
+created by this application.
+
+The Graph connector supports only the public Microsoft cloud. GCC High
+and DoD/national cloud endpoints require a separate supported connector.
+Both connectors read the default calendar, including recurring occurrences,
+from 12 hours ago through the next 7 days, refreshing every 2 minutes.
+This application never sends messages or modifies calendar events.
+
+DEFAULT RULES
+Accepted meetings and meetings you organize with other attendees qualify.
+Tentative and unanswered invitations are separate, off-by-default choices.
+All-day events, canceled meetings, declined meetings, and solo appointments
+are excluded. Local alarms qualify without attendees.
+Per-occurrence Default / Always / Skip overrides do not override canceled,
+declined, or all-day exclusions. Rescheduling creates a fresh occurrence.
+
+RELIABILITY AND LIMITATIONS
+Local timers check due alarms every second. Calendar changes can take up
+to the refresh interval to arrive; offline cached alarms may be outdated.
+Stale data is marked after five minutes. A resume or clock jump triggers
+a refresh. Newly discovered meetings up to five minutes late can alert;
+older unsnoozed meetings are skipped rather than dumping old reminders.
+Snoozed alarms can resume beyond that grace period, but stop at meeting end.
+Overlapping meetings receive independent reminders.
+Quiet mode suppresses popups and sound for 30 minutes. Skipped reminders
+are not queued indefinitely. There is no automatic Teams call detection.
+Muted/disconnected audio, sleep, power-off, lock screen, and exclusive
+full-screen applications can prevent a reminder from breaking through.
+The app never unmutes, changes system volume, or wakes the computer.
+Audio is suspended while the interactive desktop is locked.
+Alarm titles and full join URLs are hidden by default; the clickable
+destination host remains visible. Turn presentation privacy off to see
+the full URL (truncated visually, with the full address on hover).
+Join and Copy link always use the complete link, including join parameters.
+Titles are visible in the main window.
+This is a prototype, not an unmissable or safety-critical alarm.
+
+DATA AND PRIVACY
+State: %LOCALAPPDATA%\MeetingAlarm\state.bin
+Calendar snapshots, local alarms, settings, and acknowledgment state are
+encrypted using Windows DPAPI for the current user and saved atomically.
+MSAL's token cache also uses Windows-protected persistence. No client
+secrets, meeting data, or tokens belong in source control.
+The generated alarm.wav contains no private information.
+Disconnect calendar removes the active calendar snapshot and any saved
+Graph account from this app's token cache. It does not sign out or close
+classic Outlook. Graph app/client settings are retained for reconnection.
+Switching away from Graph retains its protected token cache until you
+disconnect; the inactive source does not poll.
+Unchecking Windows startup removes this app's HKCU Run entry.
+To uninstall: disable startup, quit, and remove the application folder.
+Optionally remove %LOCALAPPDATA%\MeetingAlarm to delete local state.
+
+ARCHITECTURE / POSSIBLE POWERTOYS CONTRIBUTION
+MeetingAlarm.Core: deterministic alarm selection/snooze engine, no UI,
+network, authentication, or Windows dependencies.
+MeetingAlarm.Outlook: optional delegated MSAL/Graph calendar connector.
+MeetingAlarm.ClassicOutlook: optional read-only local Outlook COM connector.
+MeetingAlarm.App: WinUI 3 desktop UI, tray, audio, encrypted state, startup.
+Separate tests cover scheduling, both connectors, source migration, and
+encrypted-state round trips. Run: dotnet test MeetingAlarm.slnx -c Release
+
+ICON ASSETS
+Assets are under src\MeetingAlarm.App\Assets. The original vector design
+is MeetingAlarm.svg: a white bell with clock hands, an indigo gradient
+tile, and an amber notification light. PNG and multi-resolution ICO
+versions are included; the icon is used by the executable, taskbar,
+notification area, main window, and reminder windows.
+To regenerate after editing the SVG, from the project folder:
+  powershell.exe -NoProfile -STA -File .\tools\Render-Icon.ps1
+  .\tools\Generate-Icon.ps1
+These use native Windows drawing APIs; no image service is required.
+
+This is not an official PowerToy. Before proposing integration, search
+existing PowerToys issues and seek maintainer agreement on the scenario,
+calendar authentication, scope, and implementation. Integration still
+needs PowerToys runner/settings/GPO/installer wiring, accessibility and
+localization work, and contribution/CLA review. No upstream submission
+or claim of acceptance is made by this prototype.

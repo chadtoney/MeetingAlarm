@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Meeting Alarm</title>
+  <desc>A white alarm bell with clock hands on an indigo tile, with an amber notification light.</desc>
+  <defs>
+    <linearGradient id="tile" x1="72" y1="40" x2="436" y2="488" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6375FF"/>
+      <stop offset=".55" stop-color="#4553CF"/>
+      <stop offset="1" stop-color="#283578"/>
+    </linearGradient>
+    <linearGradient id="bell" x1="210" y1="154" x2="296" y2="344" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E7EDFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#tile)"/>
+  <rect x="25" y="25" width="462" height="462" rx="111" fill="none" stroke="#FFFFFF" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M140 202C126 218 120 238 120 258M368 216C378 231 382 245 382 261"
+        fill="none" stroke="#98E8F6" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="252" cy="143" r="17" fill="#F5F8FF"/>
+  <path d="M148 329C170 302 176 281 176 232C176 186 207 155 252 155C297 155 328 186 328 232C328 281 334 302 356 329Z"
+        fill="url(#bell)"/>
+  <rect x="138" y="317" width="228" height="34" rx="17" fill="#F3F6FF"/>
+  <path d="M229 369A23 23 0 0 0 275 369" fill="#FFD080"/>
+  <path d="M252 210V259L286 280" fill="none" stroke="#4553CF" stroke-width="18"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="374" cy="136" r="39" fill="#3644AA"/>
+  <circle cx="374" cy="136" r="28" fill="#FFD080"/>
+  <circle cx="366" cy="127" r="8" fill="#FFFFFF" fill-opacity=".38"/>
+</svg>
